@@ -1,15 +1,70 @@
 # Youtube Faux Fullscreen
 
-A minimal Manifest V3 extension for Chromium browsers. It makes the current
+A minimal Manifest V3 extension for Chromium browsers and Firefox desktop 140+. It makes the current
 YouTube player fill the browser's content area without entering operating-system
 fullscreen mode.
 
 ## Install
 
+Build both browser versions first (Node.js 22+):
+
+```sh
+npm ci
+npm run build
+```
+
+### Chrome / Edge
+
 1. Open `chrome://extensions` in Chrome, or `edge://extensions` in Edge.
 2. Enable **Developer mode**.
 3. Choose **Load unpacked**.
-4. Select this project folder.
+4. Select `dist/chromium` inside this project.
+
+If you previously loaded the project root, export your settings before removing
+that installation. Load `dist/chromium`, then import the settings backup.
+
+### Firefox
+
+1. Open `about:debugging#/runtime/this-firefox`.
+2. Choose **Load Temporary Add-on**.
+3. Select `dist/firefox/manifest.json`.
+
+Temporary installations last until Firefox restarts. For permanent installation,
+submit the Firefox ZIP to Mozilla for signing, either as a public listing or an
+unlisted add-on, then install the signed XPI. Building a ZIP does not sign it.
+
+## Development and releases
+
+Edit shared code in `src/`. `manifests/base.json` holds the common manifest and
+the single extension version number. `manifests/chromium.json` and
+`manifests/firefox.json` replace browser-specific top-level manifest keys.
+Keep the Firefox add-on ID stable after its first release.
+
+```sh
+npm test
+npm run lint:firefox
+npm run package
+```
+
+The build recreates `dist/chromium` and `dist/firefox` from shared source.
+Packaging also builds both targets, then writes versioned ZIPs under
+`artifacts/chromium` and `artifacts/firefox`. Generated files are ignored by Git;
+never edit them directly. Node tooling and tests are excluded from the packages.
+`logo.png` at the project root is artwork; runtime icons live in `src/icons`.
+
+After each source change, rebuild, reload the extension in each browser's
+extension manager, and reload YouTube tabs. Before a release, increase the version
+in `manifests/base.json`, run the checks above, and manually test both browsers:
+
+- Regular videos and Shorts, including switching between videos without a page reload.
+- Automatic entry/exit, F/Escape, native fullscreen, and the player toggle button.
+- Toolbar/header visibility, ratings, and pinned toolbar behaviour.
+- Opening Options from the extension icon, saving/reloading settings, and live updates.
+- Configuration export/import, reset, and themes.
+
+Publish both packages from the same Git commit. Chrome/Edge store submissions
+and Firefox signing remain separate release steps. Firefox's manifest declares
+no data collection; preferences and configuration exports stay local.
 
 ## Use
 
@@ -35,7 +90,8 @@ rating. Clicking again removes it using YouTube's normal rating behavior.
 Press **Escape**, **F**, or the player button again to exit.
 Window fullscreen also exits automatically when the video finishes playing. Starting another video enables it again. If you manually exit, that video stays out of window fullscreen when resumed or replayed in the same tab until you refresh the page. Manually enabling fullscreen again clears that preference for the video.
 
-The extension runs only on `https://www.youtube.com/*` and requests no optional
+The extension runs on YouTube domains (`*://youtube.com/*` and
+`*://*.youtube.com/*`) and requests no optional
 permissions.
 
 ## Toolbar options

@@ -44,7 +44,7 @@ async function save(update, successMessage = "Saved.") {
   disable(true);
   status.textContent = "Saving...";
   try {
-    await chrome.storage.local.set(update);
+    await YTWindowExtension.storage.local.set(update);
     Object.assign(saved, update);
     status.textContent = successMessage;
   } catch {
@@ -71,7 +71,7 @@ form.addEventListener("change", event => {
 reset.addEventListener("click", () => {
   if (!saving) save({ [key]: normalize(), [preferencesKey]: normalizePreferences() });
 });
-chrome.storage.onChanged.addListener((changes, area) => {
+YTWindowExtension.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
   for (const [storageKey, normalizeValue] of [[key, normalize], [preferencesKey, normalizePreferences]]) {
     if (!changes[storageKey]) continue;
@@ -82,7 +82,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 (async () => {
   try {
-    const result = await chrome.storage.local.get([key, preferencesKey]);
+    const result = await YTWindowExtension.storage.local.get([key, preferencesKey]);
     if (!changedDuringLoad.has(key)) saved[key] = normalize(result[key]);
     if (!changedDuringLoad.has(preferencesKey)) saved[preferencesKey] = normalizePreferences(result[preferencesKey]);
     render();

@@ -6,7 +6,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 const context = vm.createContext({});
 for (const file of ["settings.js", "config.js"]) {
-  vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "..", "src", file), "utf8"), context);
 }
 const { serialize, parse } = context.YTWindowConfig;
 const plain = value => JSON.parse(JSON.stringify(value));

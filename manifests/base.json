@@ -10,9 +10,6 @@
       "32": "icons/icon-32.png"
     }
   },
-  "background": {
-    "service_worker": "background.js"
-  },
   "content_scripts": [
     {
       "matches": [
@@ -23,6 +20,7 @@
         "youtube.css"
       ],
       "js": [
+        "extension-api.js",
         "settings.js",
         "youtube.js"
       ],

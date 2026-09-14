@@ -36,13 +36,13 @@
       checkPlaybackEnded();
     }
 
-    chrome.storage.onChanged.addListener((changes, area) => {
+    YTWindowExtension.storage.onChanged.addListener((changes, area) => {
       if (area !== "local") return;
       for (const key of Object.keys(changes)) changedSettings.add(key);
       if (changes[toolbarSettings.key]) applyToolbarPreferences(changes[toolbarSettings.key].newValue);
       if (changes[toolbarSettings.preferencesKey]) applyPlayerPreferences(changes[toolbarSettings.preferencesKey].newValue);
     });
-    chrome.storage.local.get([toolbarSettings.key, toolbarSettings.preferencesKey]).then((result) => {
+    YTWindowExtension.storage.local.get([toolbarSettings.key, toolbarSettings.preferencesKey]).then((result) => {
       if (!changedSettings.has(toolbarSettings.key)) applyToolbarPreferences(result[toolbarSettings.key]);
       if (!changedSettings.has(toolbarSettings.preferencesKey)) applyPlayerPreferences(result[toolbarSettings.preferencesKey]);
     }).catch(() => {
@@ -552,7 +552,7 @@
     if (document.fullscreenElement && isActive()) exit(true);
   });
 
-  chrome.runtime.onMessage.addListener((message) => {
+  YTWindowExtension.runtime.onMessage.addListener((message) => {
     if (message?.type === "toggle-window-fullscreen") toggle();
   });
 
