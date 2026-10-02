@@ -34,6 +34,14 @@
           <div id="behaviors"></div>
           <p class="hint">Turning off automatic entry leaves manual controls available. Keeping the toolbar visible still respects your visibility switches.</p>
         </fieldset>
+        <fieldset id="creators" disabled>
+          <legend>Remembered creators</legend>
+          <p class="hint">With automatic liking enabled, manual likes remember creators. Their videos are liked after 60 seconds of playback, Shorts after 25 seconds. Shorter Shorts qualify after watching 90%. Existing YouTube like history is not imported.</p>
+          <label for="creator-list">Creators to automatically like</label>
+          <select id="creator-list" size="6" multiple aria-describedby="creator-hint"></select>
+          <p id="creator-hint" class="hint">Select creators, then remove them to stop automatic likes. Turning the toggle off keeps this list. The list stays on this device and is not included in configuration backups.</p>
+          <button id="remove-creators" type="button" disabled>Remove selected creators</button>
+        </fieldset>
         <fieldset id="appearance" disabled>
           <legend>Appearance</legend>
           <label for="theme">Options page theme
@@ -60,7 +68,7 @@
         <p id="status" role="status" aria-live="polite">Loading settings…</p>
       </footer>
     </form>
-    <p class="hint">Even with every control hidden, press <kbd>F</kbd> or <kbd>Escape</kbd> to exit. Click the extension icon to open these options. These preferences only affect window fullscreen.</p>
+    <p class="hint">Even with every control hidden, press <kbd>F</kbd> or <kbd>Escape</kbd> to exit. Click the extension icon to open these options. Toolbar visibility preferences only affect window fullscreen. Automatic liking also works outside it.</p>
   </main>
 </body>
 </html>

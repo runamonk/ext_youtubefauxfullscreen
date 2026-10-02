@@ -44,6 +44,7 @@ globalThis.YTWindowSettings = (() => {
 
     const preferencesKey = "playerPreferences";
     const behaviors = [
+      { id: "autoLike", label: "Auto like previously liked creators", defaultValue: false },
       { id: "autoEnter", label: "Automatically enter faux fullscreen on playback", defaultValue: true },
       { id: "autoExit", label: "Exit when the video ends", defaultValue: true },
       { id: "keepToolbarVisible", label: "Keep the toolbar visible", defaultValue: false }

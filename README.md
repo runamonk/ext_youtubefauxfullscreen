@@ -137,3 +137,19 @@ settings are supported. Invalid files leave current settings untouched.
 Backups include a format identifier and schema version. Adding options does not
 require a new schema version; incompatible format versions are rejected with an
 update message. Exports contain settings only.
+
+## Automatic likes
+
+Enable **Auto like previously liked creators** in Options (off by
+default). While enabled, manually liking a video or Short remembers its creator.
+Future videos from that creator are liked after 60 seconds of actual playback,
+Shorts after 25 seconds, including outside faux fullscreen. Pauses, buffering, ads and seeking
+do not count. Shorter Shorts qualify after watching 90% of their duration.
+Both formats use the same creator list. Existing likes and dislikes are left alone;
+a manual rating prevents automatic liking for that video in the current tab.
+
+Options shows a remembered creator list. Select one or more creators and click
+**Remove selected creators** to stop future automatic likes; existing likes stay
+as they are. Disabling automatic likes or restoring defaults keeps the list.
+The list is stored locally, is not included in configuration backups, and does
+not import your existing YouTube like history.

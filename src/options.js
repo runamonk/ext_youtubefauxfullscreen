@@ -9,6 +9,41 @@ const theme = document.getElementById("theme");
 const inputs = new Map();
 let saved = { [key]: normalize(), [preferencesKey]: normalizePreferences() };
 let saving = false;
+const creatorList = document.getElementById("creator-list");
+const removeCreators = document.getElementById("remove-creators");
+let creators = {};
+const creatorChanges = new Set();
+
+function renderCreators() {
+  const selected = new Set([...creatorList.selectedOptions].map(option => option.value));
+  creatorList.replaceChildren();
+  for (const [storageKey, name] of Object.entries(creators).sort((a, b) => a[1].localeCompare(b[1]))) {
+    const option = document.createElement("option");
+    option.value = storageKey;
+    option.textContent = name;
+    option.selected = selected.has(storageKey);
+    creatorList.append(option);
+  }
+  removeCreators.disabled = saving || !creatorList.selectedOptions.length;
+}
+creatorList.addEventListener("change", renderCreators);
+removeCreators.addEventListener("click", async () => {
+  if (saving) return;
+  const keys = [...creatorList.selectedOptions].map(option => option.value);
+  saving = true;
+  disable(true);
+  try {
+    await YTWindowExtension.storage.local.remove(keys);
+    for (const storageKey of keys) delete creators[storageKey];
+    status.textContent = "Selected creators removed.";
+  } catch {
+    status.textContent = "Could not remove creators. Please try again.";
+  } finally {
+    saving = false;
+    disable(false);
+    renderCreators();
+  }
+});
 const changedDuringLoad = new Set();
 
 for (const [items, container, storageKey] of [
@@ -38,6 +73,7 @@ function render() {
 function disable(value) {
   for (const fieldset of fieldsets) fieldset.disabled = value;
   reset.disabled = value;
+  removeCreators.disabled = value || !creatorList.selectedOptions.length;
 }
 async function save(update, successMessage = "Saved.") {
   saving = true;
@@ -73,6 +109,13 @@ reset.addEventListener("click", () => {
 });
 YTWindowExtension.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
+  for (const [storageKey, change] of Object.entries(changes)) {
+    if (!storageKey.startsWith("autoLikeCreator:")) continue;
+    creatorChanges.add(storageKey);
+    if (typeof change.newValue === "string") creators[storageKey] = change.newValue;
+    else delete creators[storageKey];
+  }
+  renderCreators();
   for (const [storageKey, normalizeValue] of [[key, normalize], [preferencesKey, normalizePreferences]]) {
     if (!changes[storageKey]) continue;
     changedDuringLoad.add(storageKey);
@@ -82,9 +125,13 @@ YTWindowExtension.storage.onChanged.addListener((changes, area) => {
 });
 (async () => {
   try {
-    const result = await YTWindowExtension.storage.local.get([key, preferencesKey]);
+    const result = await YTWindowExtension.storage.local.get(null);
     if (!changedDuringLoad.has(key)) saved[key] = normalize(result[key]);
     if (!changedDuringLoad.has(preferencesKey)) saved[preferencesKey] = normalizePreferences(result[preferencesKey]);
+    for (const [storageKey, name] of Object.entries(result)) {
+      if (storageKey.startsWith("autoLikeCreator:") && typeof name === "string" && !creatorChanges.has(storageKey)) creators[storageKey] = name;
+    }
+    renderCreators();
     render();
     disable(false);
     status.textContent = "Ready. All changes save automatically.";

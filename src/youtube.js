@@ -57,7 +57,23 @@
   let ratingSource = null;
   const ratingObserver = new MutationObserver(updateRatingControls);
 
+  function getActiveShort() {
+    if (navigating || !isShortsPage()) return null;
+    const reels = [...document.querySelectorAll("ytd-shorts ytd-reel-video-renderer")];
+    const reel = reels.find(item => item.hasAttribute("is-active")) ||
+      reels.find(item => {
+        const video = item.querySelector("video");
+        const bounds = item.getBoundingClientRect();
+        return video && !video.paused && bounds.top < innerHeight && bounds.bottom > 0;
+      });
+    if (!reel) return null;
+    const id = reel.getAttribute("video-id");
+    if (id && id !== location.pathname.split("/")[2]) return null;
+    return reel;
+  }
+
   function getRatingSource() {
+    if (isShortsPage()) return getActiveShort();
     const metadata = document.querySelector("ytd-watch-metadata");
     return metadata?.querySelector(
       "segmented-like-dislike-button-view-model, ytd-segmented-like-dislike-button-renderer"
@@ -66,9 +82,130 @@
 
   function getRatingButton(kind) {
     return getRatingSource()?.querySelector(
-      kind + "-button-view-model button, #" + kind + "-button button"
+      kind + "-button-view-model button, #" + kind + "-button button, " +
+      "#" + kind + "-button [role='button']"
     ) || null;
   }
+
+  const rememberedCreators = new Set();
+  const creatorChanges = new Set();
+  const manuallyRatedVideos = new Set();
+  const autoLikeAttempts = new Set();
+  let navigating = false;
+  let watchedVideo = "";
+  let watchedSeconds = 0;
+  let previousPosition = null;
+  let previousTick = performance.now();
+
+  YTWindowExtension.storage.onChanged.addListener((changes, area) => {
+    if (area !== "local") return;
+    for (const [key, change] of Object.entries(changes)) {
+      if (!key.startsWith("autoLikeCreator:")) continue;
+      creatorChanges.add(key);
+      if (typeof change.newValue === "string") rememberedCreators.add(key);
+      else rememberedCreators.delete(key);
+    }
+  });
+  YTWindowExtension.storage.local.get(null).then(result => {
+    for (const [key, name] of Object.entries(result)) {
+      if (key.startsWith("autoLikeCreator:") && typeof name === "string" && !creatorChanges.has(key)) rememberedCreators.add(key);
+    }
+  }).catch(() => {});
+
+  function getCreator() {
+    if (navigating || !getVideoKey()) return null;
+    let link;
+    if (isShortsPage()) {
+      link = getActiveShort()?.querySelector(
+        "#channel-name a[href], ytd-channel-name a[href], " +
+        "yt-reel-channel-bar-view-model a[href^='/@'], yt-reel-channel-bar-view-model a[href^='/channel/']"
+      );
+    } else {
+      const watch = document.querySelector("ytd-watch-flexy");
+      if (location.pathname !== "/watch" ||
+          watch?.getAttribute("video-id") !== new URLSearchParams(location.search).get("v")) return null;
+      link = document.querySelector("ytd-watch-metadata #owner ytd-channel-name a[href]");
+    }
+    if (!link) return null;
+    const path = new URL(link.href, location.href).pathname.replace(/\/$/, "");
+    if (!/^\/(channel\/[^/]+|@[^/]+)$/.test(path)) return null;
+    const name = link.textContent.trim();
+    return name ? { key: "autoLikeCreator:" + path, name } : null;
+  }
+
+  document.addEventListener("yt-navigate-start", () => {
+    navigating = true;
+    watchedVideo = "";
+    watchedSeconds = 0;
+    previousPosition = null;
+  });
+  document.addEventListener("yt-navigate-finish", () => { navigating = false; });
+
+  document.addEventListener("click", event => {
+    if (!event.isTrusted || !(event.target instanceof Element)) return;
+    const button = event.target.closest("button, [role='button']");
+    const toolbarKind = button?.closest("#" + RATING_ID) ? button.dataset.rating : null;
+    const kind = toolbarKind || (button === getRatingButton("like") ? "like" :
+      button === getRatingButton("dislike") ? "dislike" : null);
+    if (!kind) return;
+    const videoKey = getVideoKey();
+    manuallyRatedVideos.add(videoKey);
+    if (!preferencesReady || !playerPreferences.autoLike || kind !== "like") return;
+    const creator = getCreator();
+    const nativeButton = getRatingButton("like");
+    if (!creator || nativeButton?.getAttribute("aria-pressed") !== "false") return;
+    // Wait for YouTube to confirm the manual like before remembering its creator.
+    let checks = 0;
+    const timer = setInterval(() => {
+      if (getVideoKey() !== videoKey || navigating || !playerPreferences.autoLike || ++checks > 10) {
+        clearInterval(timer);
+        return;
+      }
+      if (getRatingButton("like")?.getAttribute("aria-pressed") !== "true") return;
+      clearInterval(timer);
+      YTWindowExtension.storage.local.set({ [creator.key]: creator.name }).catch(() => {});
+    }, 200);
+  }, true);
+
+  setInterval(() => {
+    const now = performance.now();
+    const elapsed = Math.min((now - previousTick) / 1000, 2);
+    previousTick = now;
+    const videoKey = getVideoKey();
+    if (videoKey !== watchedVideo) {
+      watchedVideo = videoKey;
+      watchedSeconds = 0;
+      previousPosition = null;
+    }
+    const player = isShortsPage()
+      ? getActiveShort()?.querySelector(".html5-video-player") : getPlayer();
+    const video = player?.querySelector("video");
+    if (!preferencesReady || !playerPreferences.autoLike || navigating ||
+        !videoKey || !video || video.paused || video.ended || video.seeking ||
+        video.readyState < 3 || isShowingAd(player)) {
+      previousPosition = null;
+      return;
+    }
+    const position = video.currentTime;
+    if (previousPosition !== null) {
+      const advance = position - previousPosition;
+      if (advance > 0 && advance <= elapsed * video.playbackRate + 0.5) watchedSeconds += elapsed;
+    }
+    previousPosition = position;
+    // Short clips need a chance to qualify before playback stops at the end.
+    const threshold = isShortsPage() && Number.isFinite(video.duration) && video.duration > 0
+      ? Math.min(25, video.duration * 0.9 / video.playbackRate) : (isShortsPage() ? 25 : 60);
+    if (watchedSeconds < threshold || manuallyRatedVideos.has(videoKey) || autoLikeAttempts.has(videoKey)) return;
+    const creator = getCreator();
+    const like = getRatingButton("like");
+    const dislike = getRatingButton("dislike");
+    if (!creator || !rememberedCreators.has(creator.key) || !like || !dislike ||
+        like.disabled || like.getAttribute("aria-disabled") === "true" ||
+        like.getAttribute("aria-pressed") !== "false" ||
+        dislike.getAttribute("aria-pressed") !== "false") return;
+    autoLikeAttempts.add(videoKey);
+    like.click();
+  }, 1000);
 
   function updateRatingControls() {
     let group = document.getElementById(RATING_ID);
@@ -321,6 +458,10 @@
     if (location.pathname === "/watch") {
       const videoId = new URLSearchParams(location.search).get("v");
       return videoId ? `watch:${videoId}` : null;
+    }
+
+    if (/^\/shorts\/[^/]+/.test(location.pathname)) {
+      return "watch:" + location.pathname.split("/")[2];
     }
 
     if (/^\/(live|clip)\//.test(location.pathname)) {
