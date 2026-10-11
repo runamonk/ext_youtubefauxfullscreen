@@ -144,7 +144,9 @@ const configFile = document.getElementById("config-file");
 document.getElementById("export-config").addEventListener("click", () => {
   if (saving) return;
   try {
-    const blob = new Blob([YTWindowConfig.serialize(saved)], { type: "application/json" });
+    const blob = new Blob([YTWindowConfig.serialize({
+      [key]: saved[key], [preferencesKey]: saved[preferencesKey], ...creators
+    })], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;

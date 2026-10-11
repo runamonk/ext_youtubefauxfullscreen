@@ -12,7 +12,9 @@ globalThis.YTWindowConfig = (() => {
       schemaVersion,
       settings: {
         [key]: normalize(settings[key]),
-        [preferencesKey]: normalizePreferences(settings[preferencesKey])
+        [preferencesKey]: normalizePreferences(settings[preferencesKey]),
+        ...Object.fromEntries(Object.entries(settings).filter(([storageKey, name]) =>
+          storageKey.startsWith("autoLikeCreator:") && typeof name === "string"))
       }
     }, null, 2) + "\n";
   }
@@ -52,7 +54,13 @@ globalThis.YTWindowConfig = (() => {
     }
     // Rebuild from known keys. Missing options use current defaults, never
     // the importing device's previous settings; unknown options are ignored.
-    return { [key]: normalize(visibility), [preferencesKey]: normalizePreferences(preferences) };
+    const update = { [key]: normalize(visibility), [preferencesKey]: normalizePreferences(preferences) };
+    for (const [storageKey, name] of Object.entries(data.settings)) {
+      if (!storageKey.startsWith("autoLikeCreator:")) continue;
+      if (typeof name !== "string") throw new Error("Creator names must be text.");
+      update[storageKey] = name;
+    }
+    return update;
   }
   return { serialize, parse };
 })();
