@@ -87,6 +87,9 @@ Hover over the bottom toolbar in window fullscreen to see the creator and video
 title just above the seek bar, and to like or dislike the video
 using the thumb buttons beside the time display. Filled icons show your current
 rating. Clicking again removes it using YouTube's normal rating behavior.
+The check after the thumbs shows your subscription: red when not subscribed,
+green when subscribed. Clicking a red check subscribes. Clicking a green check opens
+YouTube's own unsubscribe confirmation (English YouTube only).
 
 Press **Escape**, **F**, or the player button again to exit.
 Window fullscreen also exits automatically when the video finishes playing. Starting another video enables it again. If you manually exit, that video stays out of window fullscreen when resumed or replayed in the same tab until you refresh the page. Manually enabling fullscreen again clears that preference for the video.
@@ -101,7 +104,7 @@ Click the extension icon to open Options. You can also open **Extension
 options** from the extension's details in the browser extension manager.
 
 Each supported player control has its own visibility switch, including the seek
-bar, time, chapter, like/dislike buttons, playback controls, viewing modes and
+bar, time, chapter, like/dislike buttons, subscribe status, playback controls, viewing modes and
 top-bar actions. All switches default to on. Changes are saved locally and apply
 immediately to open YouTube tabs, only while window fullscreen is active.
 Enabled switches preserve YouTube's normal availability and hover behavior;

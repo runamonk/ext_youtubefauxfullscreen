@@ -56,6 +56,7 @@
   const SHORTS_CLASS = "yt-window-shorts";
   const RATING_ID = "yt-window-rating-controls";
   const VIDEO_INFO_ID = "yt-window-video-info";
+  const SUBSCRIBE_ID = "yt-window-subscribe-button";
   let ratingSource = null;
   const ratingObserver = new MutationObserver(updateRatingControls);
 
@@ -226,6 +227,7 @@
     }
     if (!controls || isShortsPage()) {
       group?.remove();
+      document.getElementById(SUBSCRIBE_ID)?.remove();
       ratingObserver.disconnect();
       ratingSource = null;
       return;
@@ -288,6 +290,118 @@
         (kind === "like" ? "Like" : "Dislike");
       button.title = label;
       button.setAttribute("aria-label", label);
+    }
+    updateSubscribeButton(group);
+  }
+
+  let subscribeClicked = -Infinity;
+  let unsubscribeClicked = -Infinity;
+
+  function getSubscribeSource() {
+    return document.querySelector(
+      "ytd-watch-metadata #owner :is(ytd-subscribe-button-renderer, yt-subscribe-button-view-model)"
+    );
+  }
+
+  // YouTube shows the filled "Subscribe" button until subscribed, then a tonal one.
+  // Metadata is hidden with visibility, so laid-out buttons still have a width.
+  function getSubscribeAction(source) {
+    const shown = [...source.querySelectorAll("button")].filter(button => button.getBoundingClientRect().width > 0);
+    // Older pages use "--filled", newer ones "ytSpecButtonShapeNextFilled".
+    return shown.find(button => /(--f|F)illed\b/.test(button.className)) ||
+      (shown.length ? null : undefined);
+  }
+
+  function isSubscribed(source) {
+    return getSubscribeAction(source) === null;
+  }
+
+  // Separate from the rating pill so it has its own visibility switch.
+  function updateSubscribeButton(group) {
+    let button = document.getElementById(SUBSCRIBE_ID);
+    if (!button) {
+      button = document.createElement("button");
+      button.id = SUBSCRIBE_ID;
+      button.type = "button";
+      button.className = "ytp-button";
+      const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      icon.setAttribute("viewBox", "0 0 24 24");
+      icon.setAttribute("aria-hidden", "true");
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", "M4.5 12.5 9.5 17.5 19.5 6.5");
+      icon.appendChild(path);
+      button.appendChild(icon);
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const source = getSubscribeSource();
+        if (!isActive() || !source || unsubscribing) return;
+        if (isSubscribed(source)) {
+          unsubscribe(button);
+          return;
+        }
+        const action = getSubscribeAction(source);
+        if (!action) return;
+        subscribeClicked = performance.now();
+        action.click();
+        updateRatingControls();
+      });
+    }
+    if (group.nextElementSibling !== button) group.after(button);
+    const source = getSubscribeSource();
+    const subscribed = String(!!source && isSubscribed(source));
+    if (button.disabled !== !source) button.disabled = !source;
+    if (button.dataset.subscribed !== subscribed) {
+      // Confirm our click only once YouTube actually shows the subscription.
+      if (subscribed === "true" && performance.now() - subscribeClicked < 10000) {
+        subscribeClicked = -Infinity;
+        showSubscribeToast(button, "Subscribed", false);
+      } else if (subscribed === "false" && performance.now() - unsubscribeClicked < 30000) {
+        unsubscribeClicked = -Infinity;
+        showSubscribeToast(button, "Unsubscribed", true);
+      }
+      button.dataset.subscribed = subscribed;
+      button.title = subscribed === "true" ? "Subscribed" : "Subscribe";
+      button.setAttribute("aria-label", button.title);
+    }
+  }
+
+  function showSubscribeToast(button, text, warning) {
+    button.querySelector(".yt-window-subscribe-toast")?.remove();
+    const toast = document.createElement("span");
+    toast.className = "yt-window-subscribe-toast";
+    toast.classList.toggle("yt-window-subscribe-toast-warning", warning);
+    toast.setAttribute("role", "status");
+    toast.textContent = text;
+    toast.addEventListener("animationend", () => toast.remove());
+    button.appendChild(toast);
+  }
+
+  let unsubscribing = false;
+
+  // Open YouTube's hidden menu and pick Unsubscribe. Its confirm dialog shows
+  // above the player, so the user still confirms there.
+  async function unsubscribe(button) {
+    unsubscribing = true;
+    try {
+      const source = getSubscribeSource();
+      const menuButton = source && [...source.querySelectorAll("button")]
+        .find(entry => entry.getBoundingClientRect().width > 0);
+      menuButton?.click();
+      // Matched by text so a wrong guess can never change notification settings.
+      let item = null;
+      for (const end = performance.now() + 3000; menuButton && !item && performance.now() < end;) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        item = [...document.querySelectorAll("ytd-popup-container :is(tp-yt-paper-item, yt-list-item-view-model)")]
+          .find(entry => /unsubscribe/i.test(entry.textContent));
+      }
+      if (!item) {
+        showSubscribeToast(button, "Couldn't unsubscribe", true);
+        return;
+      }
+      unsubscribeClicked = performance.now();
+      item.click();
+    } finally {
+      unsubscribing = false;
     }
   }
 
@@ -677,7 +791,10 @@
       target instanceof HTMLElement &&
       (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
 
-    if (event.key === "Escape" && isActive()) {
+    // Let Escape close an open YouTube dialog, such as unsubscribe, first.
+    const dialogOpen = [...document.querySelectorAll("ytd-popup-container tp-yt-paper-dialog")]
+      .some(dialog => dialog.getBoundingClientRect().width > 0);
+    if (event.key === "Escape" && isActive() && !dialogOpen) {
       exit(true);
     } else if (
       event.key.toLowerCase() === "f" &&
