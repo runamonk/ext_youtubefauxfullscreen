@@ -1,11 +1,13 @@
 "use strict";
 
-const { controls, key, normalize, behaviors, preferencesKey, normalizePreferences } = YTWindowSettings;
+const { controls, key, normalize, behaviors, preferencesKey, normalizePreferences, videoInfoFontSizes } = YTWindowSettings;
 const form = document.getElementById("options");
 const fieldsets = [...form.querySelectorAll("fieldset")];
 const reset = document.getElementById("reset");
 const status = document.getElementById("status");
 const theme = document.getElementById("theme");
+const videoInfoSize = document.getElementById("video-info-size");
+for (const size of videoInfoFontSizes) videoInfoSize.add(new Option(size + " px", size));
 const inputs = new Map();
 let saved = { [key]: normalize(), [preferencesKey]: normalizePreferences() };
 let saving = false;
@@ -68,6 +70,7 @@ for (const [items, container, storageKey] of [
 function render() {
   for (const [id, { input, storageKey }] of inputs) input.checked = saved[storageKey][id];
   theme.value = saved[preferencesKey].theme;
+  videoInfoSize.value = saved[preferencesKey].videoInfoFontSize;
   document.documentElement.dataset.theme = theme.value;
 }
 function disable(value) {
@@ -97,6 +100,10 @@ form.addEventListener("change", event => {
   if (event.target === theme) {
     document.documentElement.dataset.theme = theme.value;
     save({ [preferencesKey]: { ...saved[preferencesKey], theme: theme.value } });
+    return;
+  }
+  if (event.target === videoInfoSize) {
+    save({ [preferencesKey]: { ...saved[preferencesKey], videoInfoFontSize: Number(videoInfoSize.value) } });
     return;
   }
   const entry = inputs.get(event.target.name);

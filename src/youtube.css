@@ -205,3 +205,44 @@ html.yt-window-fullscreen #movie_player .ytp-chapter-container {
   html.yt-window-fullscreen.yt-window-toolbar-pinned #movie_player {
     cursor: auto !important;
   }
+/* Author and title sit just above the seek bar and ignore the pointer,
+   so hovering them never scrubs the video. */
+html.yt-window-fullscreen #movie_player #yt-window-video-info {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  display: flex;
+  gap: 8px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.3em 0.8em;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  /* Starting size; youtube.js scales it to fit the toolbar width. */
+  font-size: var(--yt-window-video-info-size, 14px);
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+html.yt-window-fullscreen #movie_player #yt-window-video-info[hidden],
+#yt-window-video-info span:empty {
+  display: none;
+}
+
+#yt-window-video-info span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#yt-window-video-info span:first-child {
+  flex: 0 1 auto;
+  max-width: 40%;
+  opacity: 0.8;
+}
+
+#yt-window-video-info span:last-child {
+  min-width: 0;
+  font-weight: 500;
+}

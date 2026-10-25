@@ -83,7 +83,8 @@ During window fullscreen, move the pointer to the top edge of the page to reveal
 the YouTube header. Keyboard focus also reveals it. Outside window fullscreen,
 regular videos keep the normal YouTube header.
 
-Hover over the bottom toolbar in window fullscreen to like or dislike the video
+Hover over the bottom toolbar in window fullscreen to see the creator and video
+title just above the seek bar, and to like or dislike the video
 using the thumb buttons beside the time display. Filled icons show your current
 rating. Clicking again removes it using YouTube's normal rating behavior.
 
@@ -122,13 +123,17 @@ After updating an unpacked installation, reload the extension and YouTube tabs.
   Edge theme colors or backgrounds. Manual overrides affect only the options page.
   Restore defaults also resets playback settings and the theme.
 
+  The author and title above the seek bar have their own visibility switch under
+  **Player controls** and a minimum text size under **Appearance** (14 px by default). The text grows to
+  fill about 60% of the toolbar width, up to 21 px; long titles stay at the minimum.
+
 The **Top header** visibility group controls the YouTube page masthead: menu,
 logo, search, microphone, Create, notifications and account. These switches apply
 only in faux fullscreen. Video overlay actions are listed under **Player controls**.
 
 ## Configuration backups
 
-In Options, use **Export JSON** to download visibility, playback and theme
+In Options, use **Export JSON** to download visibility, playback and appearance
 preferences plus remembered auto-like creators. **Import JSON** restores them
 and updates open YouTube tabs. Imported creators are added to the existing list;
 older backups without creators leave the list untouched.

@@ -52,11 +52,15 @@
             </select>
           </label>
           <p class="hint">Automatic follows the light or dark preference reported by your browser and updates when it changes. Custom Edge theme colors and images are not copied.</p>
+          <label for="video-info-size">Author and title minimum text size
+            <select id="video-info-size"></select>
+          </label>
+          <p class="hint">The author and title above the seek bar in faux fullscreen grow to fill more of the toolbar, up to 21 px. Long titles stay at the minimum. Turn them off under Player controls.</p>
         </fieldset>
 
       <fieldset id="backup" disabled>
         <legend>Configuration backup</legend>
-        <p class="hint">Export your visibility, playback and theme settings plus remembered creators to JSON. Import replaces your settings and adds creators to your existing list; missing options use defaults and unknown options are ignored.</p>
+        <p class="hint">Export your visibility, playback and appearance settings plus remembered creators to JSON. Import replaces your settings and adds creators to your existing list; missing options use defaults and unknown options are ignored.</p>
         <div class="backup-actions">
           <button id="export-config" type="button">Export JSON</button>
           <button id="import-config" type="button">Import JSON</button>

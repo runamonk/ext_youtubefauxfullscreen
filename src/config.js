@@ -1,7 +1,7 @@
 "use strict";
 
 globalThis.YTWindowConfig = (() => {
-  const { controls, key, normalize, behaviors, preferencesKey, normalizePreferences } = YTWindowSettings;
+  const { controls, key, normalize, behaviors, preferencesKey, normalizePreferences, videoInfoFontSizes } = YTWindowSettings;
   const format = "youtube-faux-fullscreen";
   const schemaVersion = 1;
   const isObject = value => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -51,6 +51,9 @@ globalThis.YTWindowConfig = (() => {
     }
     if (Object.hasOwn(preferences, "theme") && !["system", "light", "dark"].includes(preferences.theme)) {
       throw new Error("Theme must be system, light or dark.");
+    }
+    if (Object.hasOwn(preferences, "videoInfoFontSize") && !videoInfoFontSizes.includes(preferences.videoInfoFontSize)) {
+      throw new Error("Author and title text size must be one of " + videoInfoFontSizes.join(", ") + ".");
     }
     // Rebuild from known keys. Missing options use current defaults, never
     // the importing device's previous settings; unknown options are ignored.

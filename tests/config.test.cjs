@@ -20,7 +20,8 @@ test("export/import round trip preserves all current settings", () => {
     toolbarVisibility: Object.fromEntries(controls.map(({ id }, i) => [id, i % 2 === 0])),
     playerPreferences: {
       ...Object.fromEntries(behaviors.map(({ id }, i) => [id, i % 2 === 0])),
-      theme: "dark"
+      theme: "dark",
+      videoInfoFontSize: 16
     }
   };
   assert.deepEqual(plain(parse(serialize(settings))), settings);
@@ -36,6 +37,8 @@ test("older files fill missing options with defaults and ignore unknown keys", (
   assert.equal(imported.playerPreferences.autoEnter, true);
   assert.equal(imported.playerPreferences.keepToolbarVisible, false);
   assert.equal(imported.playerPreferences.theme, "system");
+  assert.equal(imported.playerPreferences.videoInfoFontSize, 14);
+  assert.equal(imported.toolbarVisibility.videoInfo, true);
   assert.equal(Object.hasOwn(imported.toolbarVisibility, "futureControl"), false);
   assert.equal(Object.hasOwn(imported.playerPreferences, "futurePreference"), false);
   assert.deepEqual(plain(parse(backup({}))), plain(parse(serialize({}))));
@@ -55,7 +58,9 @@ test("reject invalid documents, sections, versions and known setting types", () 
     backup({ playerPreferences: null }),
     backup({ toolbarVisibility: { play: "false" } }),
     backup({ playerPreferences: { autoEnter: 0 } }),
-    backup({ playerPreferences: { theme: "invalid" } })
+    backup({ playerPreferences: { theme: "invalid" } }),
+    backup({ playerPreferences: { videoInfoFontSize: "12" } }),
+    backup({ playerPreferences: { videoInfoFontSize: 99 } })
   ]) assert.throws(() => parse(text));
 });
 

@@ -32,6 +32,7 @@
       playerPreferences = toolbarSettings.normalizePreferences(value);
       preferencesReady = true;
       document.documentElement.classList.toggle("yt-window-toolbar-pinned", playerPreferences.keepToolbarVisible);
+      document.documentElement.style.setProperty("--yt-window-video-info-size", playerPreferences.videoInfoFontSize + "px");
       autoActivate();
       checkPlaybackEnded();
     }
@@ -54,6 +55,7 @@
   const BUTTON_ID = "yt-window-fullscreen-button";
   const SHORTS_CLASS = "yt-window-shorts";
   const RATING_ID = "yt-window-rating-controls";
+  const VIDEO_INFO_ID = "yt-window-video-info";
   let ratingSource = null;
   const ratingObserver = new MutationObserver(updateRatingControls);
 
@@ -289,6 +291,42 @@
     }
   }
 
+  // Lives in the bottom chrome so it fades in and out with the toolbar.
+  function updateVideoInfo() {
+    let info = document.getElementById(VIDEO_INFO_ID);
+    const bottom = isActive() && activePlayer?.querySelector(".ytp-chrome-bottom");
+    if (!bottom) {
+      info?.remove();
+      return;
+    }
+    const metadata = document.querySelector("ytd-watch-metadata");
+    const text = selector => metadata?.querySelector(selector)?.textContent.replace(/\s+/g, " ").trim() || "";
+    const author = text("#owner ytd-channel-name a");
+    const title = text("#title h1");
+    if (!info || info.parentElement !== bottom) {
+      info?.remove();
+      info = document.createElement("div");
+      info.id = VIDEO_INFO_ID;
+      info.append(document.createElement("span"), document.createElement("span"));
+      bottom.prepend(info);
+    }
+    const [authorText, titleText] = info.children;
+    if (authorText.textContent !== author) authorText.textContent = author;
+    if (titleText.textContent !== title) titleText.textContent = title;
+    if (info.hidden !== (!author && !title)) info.hidden = !author && !title;
+    // Grow the text to fill about 60% of the toolbar, from the minimum setting up to 21px.
+    const min = playerPreferences.videoInfoFontSize;
+    const fit = [author, title, bottom.clientWidth, min].join("|");
+    if (info.hidden || info.dataset.fit === fit) return;
+    info.style.fontSize = min + "px";
+    info.style.maxWidth = "none";
+    const width = info.getBoundingClientRect().width;
+    info.style.maxWidth = "";
+    if (!width) return;
+    info.dataset.fit = fit;
+    info.style.fontSize = Math.min(21, Math.max(min, min * bottom.clientWidth * 0.6 / width)) + "px";
+  }
+
   // Capture also covers native/replaced controls and buttons that stop bubbling.
   document.addEventListener("click", (event) => {
     if (!isActive() || event.detail === 0 || !(event.target instanceof Element)) return;
@@ -505,6 +543,7 @@
     activePlayer?.classList.remove(PLAYER_CLASS);
     activePlayer = null;
     updateRatingControls();
+    updateVideoInfo();
     updateButton();
     window.dispatchEvent(new Event("resize"));
   }
@@ -525,6 +564,7 @@
     activePlayer.classList.add(PLAYER_CLASS);
     document.documentElement.classList.add(ROOT_CLASS);
     updateRatingControls();
+    updateVideoInfo();
     window.scrollTo(0, 0);
     updateButton();
     window.dispatchEvent(new Event("resize"));
@@ -622,6 +662,7 @@
     closeChatIfPresent();
     if (isActive() && !document.contains(activePlayer)) exit();
     updateRatingControls();
+    updateVideoInfo();
   });
 
   observer.observe(document.documentElement, { childList: true, subtree: true });
@@ -668,6 +709,7 @@
   document.addEventListener("emptied", scheduleShortsResize, true);
   document.addEventListener("fullscreenchange", scheduleShortsResize);
   window.addEventListener("resize", scheduleShortsResize);
+  window.addEventListener("resize", updateVideoInfo);
   window.visualViewport?.addEventListener("resize", scheduleShortsResize);
   window.addEventListener("popstate", updateShortsLayout);
   document.addEventListener("yt-navigate-finish", () => {

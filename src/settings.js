@@ -10,6 +10,7 @@ globalThis.YTWindowSettings = (() => {
     ["time", "Elapsed time and duration", ".ytp-time-display"],
     ["chapter", "Chapter title", ".ytp-chapter-container"],
     ["progress", "Progress / seek bar", ".ytp-progress-bar-container"],
+    ["videoInfo", "Author and title above the seek bar", "#yt-window-video-info"],
     ["ratings", "Like / dislike buttons", "#yt-window-rating-controls"],
     ["autoplay", "Autoplay switch", ":is(.ytp-autonav-toggle, .ytp-autonav-toggle-button-container, .ytp-autonav-toggle-button, .ytp-button:has(.ytp-autonav-toggle-button))"],
     ["captions", "Captions button", ".ytp-subtitles-button"],
@@ -49,12 +50,14 @@ globalThis.YTWindowSettings = (() => {
       { id: "autoExit", label: "Exit when the video ends", defaultValue: true },
       { id: "keepToolbarVisible", label: "Keep the toolbar visible", defaultValue: false }
     ];
+    const videoInfoFontSizes = [10, 11, 12, 13, 14, 16, 18];
     function normalizePreferences(value) {
       const result = Object.fromEntries(behaviors.map(({ id, defaultValue }) =>
         [id, typeof value?.[id] === "boolean" ? value[id] : defaultValue]));
       result.theme = ["system", "light", "dark"].includes(value?.theme) ? value.theme : "system";
+      result.videoInfoFontSize = videoInfoFontSizes.includes(value?.videoInfoFontSize) ? value.videoInfoFontSize : 14;
       return result;
     }
-    return { controls, key, normalize, preferencesKey, behaviors, normalizePreferences };
+    return { controls, key, normalize, preferencesKey, behaviors, normalizePreferences, videoInfoFontSizes };
 
 })();
