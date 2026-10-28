@@ -417,28 +417,43 @@
     const text = selector => metadata?.querySelector(selector)?.textContent.replace(/\s+/g, " ").trim() || "";
     const author = text("#owner ytd-channel-name a");
     const title = text("#title h1");
+    // Views and date; skip the hashtag links YouTube adds to the same line.
+    const infoParts = [...(metadata?.querySelectorAll("#info > span") || [])]
+      .map(span => span.textContent.trim()).filter(Boolean);
+    // New videos use a rolling view counter instead; its text is every digit, so read labels.
+    const labelParts = ["#view-count", "#date-text"]
+      .map(selector => metadata?.querySelector(selector)?.getAttribute("aria-label")?.trim()).filter(Boolean);
+    const details = (infoParts.length ? infoParts : labelParts).join(" · ");
     if (!info || info.parentElement !== bottom) {
       info?.remove();
       info = document.createElement("div");
       info.id = VIDEO_INFO_ID;
-      info.append(document.createElement("span"), document.createElement("span"));
+      info.append(document.createElement("span"), document.createElement("span"), document.createElement("span"));
       bottom.prepend(info);
     }
-    const [authorText, titleText] = info.children;
-    if (authorText.textContent !== author) authorText.textContent = author;
+    const [titleText, detailsText, authorText] = info.children;
     if (titleText.textContent !== title) titleText.textContent = title;
+    if (detailsText.textContent !== details) detailsText.textContent = details;
+    if (authorText.textContent !== author) authorText.textContent = author;
     if (info.hidden !== (!author && !title)) info.hidden = !author && !title;
-    // Grow the text to fill about 60% of the toolbar, from the minimum setting up to 21px.
+    // Grow the text to fill about 80% of the strip, from the minimum setting up to 21px.
     const min = playerPreferences.videoInfoFontSize;
-    const fit = [author, title, bottom.clientWidth, min].join("|");
+    const fit = [title, details, author, bottom.clientWidth, min].join("|");
     if (info.hidden || info.dataset.fit === fit) return;
     info.style.fontSize = min + "px";
-    info.style.maxWidth = "none";
-    const width = info.getBoundingClientRect().width;
-    info.style.maxWidth = "";
+    // The strip and the stretched title are full width, so measure the text itself.
+    const style = getComputedStyle(info);
+    const shown = [...info.children].filter(span => span.textContent);
+    const range = document.createRange();
+    const width = shown.reduce((sum, span) => {
+      range.selectNodeContents(span);
+      return sum + range.getBoundingClientRect().width;
+    }, 0) +
+      parseFloat(style.columnGap) * (shown.length - 1) +
+      parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
     if (!width) return;
     info.dataset.fit = fit;
-    info.style.fontSize = Math.min(21, Math.max(min, min * bottom.clientWidth * 0.6 / width)) + "px";
+    info.style.fontSize = Math.min(21, Math.max(min, min * bottom.clientWidth * 0.8 / width)) + "px";
   }
 
   // Capture also covers native/replaced controls and buttons that stop bubbling.

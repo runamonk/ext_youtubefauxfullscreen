@@ -10,7 +10,7 @@ globalThis.YTWindowSettings = (() => {
     ["time", "Elapsed time and duration", ".ytp-time-display"],
     ["chapter", "Chapter title", ".ytp-chapter-container"],
     ["progress", "Progress / seek bar", ".ytp-progress-bar-container"],
-    ["videoInfo", "Author and title above the seek bar", "#yt-window-video-info"],
+    ["videoInfo", "Title, views / date and creator above the seek bar", "#yt-window-video-info"],
     ["ratings", "Like / dislike buttons", "#yt-window-rating-controls"],
     ["subscribe", "Subscribe status", "#yt-window-subscribe-button"],
     ["autoplay", "Autoplay switch", ":is(.ytp-autonav-toggle, .ytp-autonav-toggle-button-container, .ytp-autonav-toggle-button, .ytp-button:has(.ytp-autonav-toggle-button))"],

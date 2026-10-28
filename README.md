@@ -83,8 +83,8 @@ During window fullscreen, move the pointer to the top edge of the page to reveal
 the YouTube header. Keyboard focus also reveals it. Outside window fullscreen,
 regular videos keep the normal YouTube header.
 
-Hover over the bottom toolbar in window fullscreen to see the creator and video
-title just above the seek bar, and to like or dislike the video
+Hover over the bottom toolbar in window fullscreen to see the video title,
+views, post date and creator just above the seek bar, and to like or dislike the video
 using the thumb buttons beside the time display. Filled icons show your current
 rating. Clicking again removes it using YouTube's normal rating behavior.
 The check after the thumbs shows your subscription: red when not subscribed,
