@@ -152,9 +152,9 @@ update message. Exports contain settings and remembered creators only.
 
 Enable **Auto like previously liked creators** in Options (off by
 default). While enabled, manually liking a video or Short remembers its creator.
-Future videos from that creator are liked after 60 seconds of actual playback,
-Shorts after 25 seconds, including outside faux fullscreen. Pauses, buffering, ads and seeking
-do not count. Shorter Shorts qualify after watching 90% of their duration.
+Future videos and Shorts from that creator are liked after watching 10% of their
+duration, including outside faux fullscreen. Live streams, which have no fixed
+duration, qualify after 60 seconds. Pauses, buffering, ads and seeking do not count.
 Both formats use the same creator list. Existing likes and dislikes are left alone;
 a manual rating prevents automatic liking for that video in the current tab.
 

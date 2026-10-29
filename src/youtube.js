@@ -195,9 +195,9 @@
       if (advance > 0 && advance <= elapsed * video.playbackRate + 0.5) watchedSeconds += elapsed;
     }
     previousPosition = position;
-    // Short clips need a chance to qualify before playback stops at the end.
-    const threshold = isShortsPage() && Number.isFinite(video.duration) && video.duration > 0
-      ? Math.min(25, video.duration * 0.9 / video.playbackRate) : (isShortsPage() ? 25 : 60);
+    // 10% of any video or Short. Live streams have no duration, so use 60 seconds.
+    const threshold = Number.isFinite(video.duration) && video.duration > 0
+      ? video.duration * 0.1 / video.playbackRate : 60;
     if (watchedSeconds < threshold || manuallyRatedVideos.has(videoKey) || autoLikeAttempts.has(videoKey)) return;
     const creator = getCreator();
     const like = getRatingButton("like");
