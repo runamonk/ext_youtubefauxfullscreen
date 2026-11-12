@@ -32,6 +32,7 @@
       playerPreferences = toolbarSettings.normalizePreferences(value);
       preferencesReady = true;
       document.documentElement.classList.toggle("yt-window-toolbar-pinned", playerPreferences.keepToolbarVisible);
+      document.documentElement.classList.toggle("yt-window-fill", playerPreferences.fillWindow);
       document.documentElement.style.setProperty("--yt-window-video-info-size", playerPreferences.videoInfoFontSize + "px");
       autoActivate();
       checkPlaybackEnded();

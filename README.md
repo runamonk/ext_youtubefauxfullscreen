@@ -119,6 +119,9 @@ After updating an unpacked installation, reload the extension and YouTube tabs.
   a video, or keep the toolbar visible. Automatic entry and exit default to on;
   keeping the toolbar visible defaults to off, preserving the existing hover behavior.
   Disabling automatic entry does not exit a video already in window fullscreen.
+  **Fill the window (crop edges)**, off by default, scales the video to cover the
+  whole window in faux fullscreen and crops the overflow evenly, removing black
+  bars. It cannot remove bars that are part of the video picture itself.
 
   The options page has **System / browser (automatic)**, **Light**, and **Dark**
   themes. Automatic is the default and follows the browser-reported light/dark

@@ -49,7 +49,8 @@ globalThis.YTWindowSettings = (() => {
       { id: "autoLike", label: "Auto like previously liked creators", defaultValue: false },
       { id: "autoEnter", label: "Automatically enter faux fullscreen on playback", defaultValue: true },
       { id: "autoExit", label: "Exit when the video ends", defaultValue: true },
-      { id: "keepToolbarVisible", label: "Keep the toolbar visible", defaultValue: false }
+      { id: "keepToolbarVisible", label: "Keep the toolbar visible", defaultValue: false },
+      { id: "fillWindow", label: "Fill the window (crop edges)", defaultValue: false }
     ];
     const videoInfoFontSizes = [10, 11, 12, 13, 14, 16, 18];
     function normalizePreferences(value) {

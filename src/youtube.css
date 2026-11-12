@@ -20,6 +20,23 @@ html.yt-window-fullscreen #movie_player.yt-window-fullscreen-player video {
   max-height: none !important;
 }
 
+/* Fill the window: cover the whole player and crop the overflow evenly, instead
+   of YouTube's fit-inside sizing with black bars. Overrides its inline sizes. */
+html.yt-window-fullscreen.yt-window-fill #movie_player.yt-window-fullscreen-player .html5-video-container {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+html.yt-window-fullscreen.yt-window-fill #movie_player.yt-window-fullscreen-player video {
+  left: 0 !important;
+  top: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
 html.yt-window-fullscreen ytd-watch-metadata,
 html.yt-window-fullscreen #below,
 html.yt-window-fullscreen #secondary {
@@ -39,6 +56,20 @@ html.yt-window-fullscreen #movie_player .ytp-chrome-top:focus-within,
 html.yt-window-fullscreen #movie_player .ytp-chrome-bottom:hover,
 html.yt-window-fullscreen #movie_player .ytp-chrome-bottom:focus-within {
   opacity: 1 !important;
+}
+
+/* Dark fade behind the bottom controls and the title strip, full player width.
+   It belongs to the toolbar, so it shows and hides with it. */
+html.yt-window-fullscreen #movie_player .ytp-chrome-bottom::before {
+  content: "";
+  position: absolute;
+  left: -50vw;
+  right: -50vw;
+  top: -72px;
+  bottom: 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.6) 55%, transparent);
+  pointer-events: none;
 }
 
 #yt-window-fullscreen-button {
@@ -82,6 +113,8 @@ html:is(.yt-window-shorts, .yt-window-fullscreen) #masthead-container {
   transform: translateY(calc(-100% + 24px));
   opacity: 0;
   transition: transform 160ms ease, opacity 160ms ease;
+  /* YouTube's newer header is see-through; keep it a solid bar over the video. */
+  background: var(--yt-spec-base-background, #0f0f0f) !important;
 }
 
 html:is(.yt-window-shorts, .yt-window-fullscreen) #masthead-container:hover,
