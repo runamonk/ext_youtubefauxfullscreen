@@ -721,7 +721,7 @@
       !video ||
       video.paused ||
       video.ended ||
-      video.readyState < 3 ||
+      video.readyState < 1 ||
       player.classList.contains("ended-mode") ||
       isShowingAd(player) ||
       document.fullscreenElement
@@ -828,7 +828,7 @@
   }, true);
 
   // Recheck playback when YouTube reuses the player for a new video.
-  for (const eventName of ["playing", "timeupdate"]) {
+  for (const eventName of ["play", "playing", "timeupdate"]) {
     document.addEventListener(eventName, (event) => {
       if (event.target instanceof HTMLVideoElement &&
           getPlayer()?.contains(event.target)) autoActivate();

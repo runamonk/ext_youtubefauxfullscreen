@@ -20,20 +20,39 @@ html.yt-window-fullscreen #movie_player.yt-window-fullscreen-player video {
   max-height: none !important;
 }
 
-/* Fill the window: cover the whole player and crop the overflow evenly, instead
-   of YouTube's fit-inside sizing with black bars. Overrides its inline sizes. */
-html.yt-window-fullscreen.yt-window-fill #movie_player.yt-window-fullscreen-player .html5-video-container {
+/* YouTube animates the player into place with a View Transition after a video
+   starts. It names a container around the player, so the snapshot draws our
+   full-window player squeezed into the normal page spot. Unname those
+   containers and skip the animation. */
+html.yt-window-fullscreen :has(#movie_player.yt-window-fullscreen-player) {
+  view-transition-name: none !important;
+}
+
+html.yt-window-fullscreen::view-transition-group(*),
+html.yt-window-fullscreen::view-transition-old(*),
+html.yt-window-fullscreen::view-transition-new(*) {
+  animation: none !important;
+}
+
+/* Size the video ourselves. YouTube briefly resets it to the small player's
+   inline size after a video starts, which shows as a box in the corner. */
+html.yt-window-fullscreen #movie_player.yt-window-fullscreen-player .html5-video-container {
   position: absolute !important;
   inset: 0 !important;
   width: 100% !important;
   height: 100% !important;
 }
 
-html.yt-window-fullscreen.yt-window-fill #movie_player.yt-window-fullscreen-player video {
+html.yt-window-fullscreen #movie_player.yt-window-fullscreen-player video {
   left: 0 !important;
   top: 0 !important;
   width: 100% !important;
   height: 100% !important;
+  object-fit: contain !important;
+}
+
+/* Fill the window: cover the whole player and crop the overflow evenly. */
+html.yt-window-fullscreen.yt-window-fill #movie_player.yt-window-fullscreen-player video {
   object-fit: cover !important;
 }
 
